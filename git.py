@@ -72,7 +72,7 @@ def setup():
 
 	device.assignKey(KeyCode.SW2_PRESS, command("git merge "))
 	device.assignKey(KeyCode.SW2_RELEASE, [])
-	device.registerCallback(commit, SW2_PRESS)
+	device.registerCallback(commit, KeyCode.SW2_PRESS)
 
 	device.assignKey(KeyCode.SW3_PRESS, command("git diff\n"))
 	device.assignKey(KeyCode.SW3_RELEASE, [])
@@ -91,7 +91,7 @@ def setup():
 
 	device.assignKey(KeyCode.SW8_PRESS, [])  # EBP
 	device.assignKey(KeyCode.SW8_RELEASE, [])
-	device.registerCallback(ebp, SW2_PRESS)
+	device.registerCallback(ebp, KeyCode.SW8_PRESS)
 
 	device.assignKey(KeyCode.SW9_PRESS, command("git checkout -b "))
 	device.assignKey(KeyCode.SW9_RELEASE, [])
