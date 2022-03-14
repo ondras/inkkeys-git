@@ -49,9 +49,9 @@ def charToKeycode(ch):
 	elif ch == "\n":
 		return KeyboardKeycode.KEY_ENTER
 	elif ch == "-":
-		return KeyboardKeycode.KEY_MINUS
+		return KeyboardKeycode.KEYPAD_SUBTRACT
 	elif ch == "+":
-		return KeyboardKeycode.KEY_PLUS
+		return KeyboardKeycode.KEYPAD_ADD
 	attr = getattr(KeyboardKeycode, "KEY_" + ch.upper(), None)
 	if attr:
 		return attr
