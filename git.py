@@ -7,9 +7,12 @@ from inkkeys import *
 from serial import SerialException
 import serial.tools.list_ports
 from PIL import Image
+from pynput.keyboard import Key, Controller
 
 
 device = Device()
+keyboard = Controller()
+
 
 def show_volume():
 	with pulsectl.Pulse("inkkeys") as pulse:
@@ -24,8 +27,40 @@ def show_volume():
 		device.setLeds(leds)
 
 
-def test():
-	pass
+def commit():
+	for ch in 'git commit -am ""':
+		keyboard.press(ch)
+		keyboard.release(ch)
+	keyboard.press(Key.left)
+	keyboard.release(Key.left)
+
+
+def ebp():
+	for ch in "~/git/util/src/email-buildpackage":
+		keyboard.press(ch)
+		keyboard.release(ch)
+	keyboard.press(Key.enter)
+	keyboard.release(Key.enter)
+
+
+def charToKeycode(ch):
+	if ch == " ":
+		return KeyboardKeycode.KEY_SPACE
+	elif ch == "\n":
+		return KeyboardKeycode.KEY_ENTER
+	elif ch == "-":
+		return KeyboardKeycode.KEY_MINUS
+	elif ch == "+":
+		return KeyboardKeycode.KEY_PLUS
+	attr = getattr(KeyboardKeycode, "KEY_" + ch.upper(), None)
+	if attr:
+		return attr
+	raise Exception("Cannot convert {} to keycode".format(ch))
+
+
+def command(str):
+	events = [event(DeviceCode.KEYBOARD, charToKeycode(ch)) for ch in str]
+	return events
 
 
 def setup():
@@ -35,36 +70,38 @@ def setup():
 	device.assignKey(KeyCode.JOG_PRESS, [event(DeviceCode.CONSUMER, ConsumerKeycode.MEDIA_VOL_MUTE)])
 	device.assignKey(KeyCode.JOG_RELEASE, [])
 
-	device.assignKey(KeyCode.SW2_PRESS, [])
+	device.assignKey(KeyCode.SW2_PRESS, command("git merge "))
 	device.assignKey(KeyCode.SW2_RELEASE, [])
+	device.registerCallback(commit, SW2_PRESS)
 
-	device.assignKey(KeyCode.SW3_PRESS, [])
+	device.assignKey(KeyCode.SW3_PRESS, command("git diff\n"))
 	device.assignKey(KeyCode.SW3_RELEASE, [])
 
-	device.assignKey(KeyCode.SW4_PRESS, [])
+	device.assignKey(KeyCode.SW4_PRESS, []]) # commit
 	device.assignKey(KeyCode.SW4_RELEASE, [])
 
-	device.assignKey(KeyCode.SW5_PRESS, [])
+	device.assignKey(KeyCode.SW5_PRESS, command("git push\n"))
 	device.assignKey(KeyCode.SW5_RELEASE, [])
 
-	device.assignKey(KeyCode.SW6_PRESS, [])
+	device.assignKey(KeyCode.SW6_PRESS, command("git pull\n"))
 	device.assignKey(KeyCode.SW6_RELEASE, [])
 
-	device.assignKey(KeyCode.SW7_PRESS, [])
+	device.assignKey(KeyCode.SW7_PRESS, command("git status\n"))
 	device.assignKey(KeyCode.SW7_RELEASE, [])
 
-	device.assignKey(KeyCode.SW8_PRESS, [])
+	device.assignKey(KeyCode.SW8_PRESS, [])  # EBP
 	device.assignKey(KeyCode.SW8_RELEASE, [])
+	device.registerCallback(ebp, SW2_PRESS)
 
-	device.assignKey(KeyCode.SW9_PRESS, [])
+	device.assignKey(KeyCode.SW9_PRESS, command("git checkout -b "))
 	device.assignKey(KeyCode.SW9_RELEASE, [])
 
 	bg = Image.open("git.png")
 	device.sendImage(0, 0, bg)
 	device.updateDisplay(fullRefresh=True)
 
-	device.registerCallback(test, KeyCode.SW2_PRESS)
 
+def loop():
 	while True:
 		now = time.time() #Time of this iteration
 		device.poll()
@@ -74,10 +111,12 @@ def setup():
 		if timeTo30fps > 0:
 			time.sleep(timeTo30fps)
 
+
 def connect(port):
 	try:
 		if device.connect(port):
 			setup()
+			loop()
 	except SerialException as e:
 		print("Serial error: ", e)
 	except:
@@ -94,5 +133,5 @@ def find_port():
 		return port.device
 	return None
 
-connect(find_port() or "/dev/pts/2")
-show_volume()
+# connect(find_port() or "/dev/pts/2")
+setup()
