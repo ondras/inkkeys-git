@@ -77,23 +77,23 @@ def setup():
 	device.assignKey(KeyCode.SW3_PRESS, command("git diff\n"))
 	device.assignKey(KeyCode.SW3_RELEASE, [])
 
-	device.assignKey(KeyCode.SW4_PRESS, []]) # commit
+	device.assignKey(KeyCode.SW4_PRESS, [])  # commit
 	device.assignKey(KeyCode.SW4_RELEASE, [])
 
 	device.assignKey(KeyCode.SW5_PRESS, command("git push\n"))
 	device.assignKey(KeyCode.SW5_RELEASE, [])
 
-	device.assignKey(KeyCode.SW6_PRESS, command("git pull\n"))
+	device.assignKey(KeyCode.SW6_PRESS, command("git checkout -b "))
 	device.assignKey(KeyCode.SW6_RELEASE, [])
 
-	device.assignKey(KeyCode.SW7_PRESS, command("git status\n"))
+	device.assignKey(KeyCode.SW7_PRESS, [])  # EBP
 	device.assignKey(KeyCode.SW7_RELEASE, [])
+	device.registerCallback(ebp, KeyCode.SW7_PRESS)
 
-	device.assignKey(KeyCode.SW8_PRESS, [])  # EBP
+	device.assignKey(KeyCode.SW8_PRESS, command("git status\n"))
 	device.assignKey(KeyCode.SW8_RELEASE, [])
-	device.registerCallback(ebp, KeyCode.SW8_PRESS)
 
-	device.assignKey(KeyCode.SW9_PRESS, command("git checkout -b "))
+	device.assignKey(KeyCode.SW9_PRESS, command("git pull\n"))
 	device.assignKey(KeyCode.SW9_RELEASE, [])
 
 	bg = Image.open("git.png")
@@ -133,5 +133,4 @@ def find_port():
 		return port.device
 	return None
 
-# connect(find_port() or "/dev/pts/2")
-setup()
+connect(find_port() or "/dev/pts/3")
