@@ -20,7 +20,7 @@ def show_volume():
 		name = pulse.server_info().default_sink_name
 		for sink in sinks:
 			if sink.name == name:
-				vol = sink.volume.value_flat
+				vol = sink.volume.value_flat if not sink.mute else 0
 		off = 0x000000
 		on = 0x33dfff
 		leds = [on if vol >= i/(device.nLeds-1) else off for i in range(device.nLeds)]
@@ -107,9 +107,9 @@ def loop():
 		device.poll()
 		show_volume()
 
-		timeTo30fps = time.time() - now + 0.0333
-		if timeTo30fps > 0:
-			time.sleep(timeTo30fps)
+		time_to_next = time.time() - now + 1/10  # 1/fps
+		if time_to_next > 0:
+			time.sleep(time_to_next)
 
 
 def connect(port):
