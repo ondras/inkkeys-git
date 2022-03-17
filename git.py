@@ -21,9 +21,9 @@ def show_volume():
 		for sink in sinks:
 			if sink.name == name:
 				vol = sink.volume.value_flat
-		off = 0x00ff00
-		on = 0xff0000
-		leds = [on if vol > i/(device.nLeds-1) else off for i in range(device.nLeds)]
+		off = 0x000000
+		on = 0x33dfff
+		leds = [on if vol >= i/(device.nLeds-1) else off for i in range(device.nLeds)]
 		device.setLeds(leds)
 
 
@@ -72,13 +72,13 @@ def setup():
 
 	device.assignKey(KeyCode.SW2_PRESS, command("git merge "))
 	device.assignKey(KeyCode.SW2_RELEASE, [])
-	device.registerCallback(commit, KeyCode.SW2_PRESS)
 
 	device.assignKey(KeyCode.SW3_PRESS, command("git diff\n"))
 	device.assignKey(KeyCode.SW3_RELEASE, [])
 
 	device.assignKey(KeyCode.SW4_PRESS, [])  # commit
 	device.assignKey(KeyCode.SW4_RELEASE, [])
+	device.registerCallback(commit, KeyCode.SW4_PRESS)
 
 	device.assignKey(KeyCode.SW5_PRESS, command("git push\n"))
 	device.assignKey(KeyCode.SW5_RELEASE, [])
@@ -125,8 +125,10 @@ def connect(port):
 
 
 def find_port():
-	VID = 0x1b4f      #USB Vendor ID for a Pro Micro
-	PID = 0x9206      #USB Product ID for a Pro Micro
+#	VID = 0x1b4f      #USB Vendor ID for a Pro Micro
+#	PID = 0x9206      #USB Product ID for a Pro Micro
+	VID = 0x2341
+	PID = 0x8036
 	for port in serial.tools.list_ports.comports():
 		if port.vid != VID or port.pid != PID:
 			continue
