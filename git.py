@@ -2,6 +2,7 @@ import traceback
 import time
 import sys
 import pulsectl
+import dbus
 
 from inkkeys import *
 from serial import SerialException
@@ -12,19 +13,26 @@ from pynput.keyboard import Key, Controller
 
 device = Device()
 keyboard = Controller()
+session_bus = dbus.SessionBus()
+screensaver = session_bus.get_object("org.xfce.ScreenSaver", "/org/xfce/ScreenSaver")
 
 
 def show_volume():
-	with pulsectl.Pulse("inkkeys") as pulse:
-		sinks = pulse.sink_list()
-		name = pulse.server_info().default_sink_name
-		for sink in sinks:
-			if sink.name == name:
-				vol = sink.volume.value_flat if not sink.mute else 0
-		off = 0x000000
-		on = 0x33dfff
-		leds = [on if vol >= i/(device.nLeds-1) else off for i in range(device.nLeds)]
-		device.setLeds(leds)
+	off = 0x000000
+	on = 0x33dfff
+	ss_active = bool(screensaver.GetActive())
+
+	if ss_active:
+		leds = [off for i in range(device.nLeds)]
+	else:
+		with pulsectl.Pulse("inkkeys") as pulse:
+			sinks = pulse.sink_list()
+			name = pulse.server_info().default_sink_name
+			for sink in sinks:
+				if sink.name == name:
+					vol = sink.volume.value_flat if not sink.mute else 0
+			leds = [on if vol >= i/(device.nLeds-1) else off for i in range(device.nLeds)]
+	device.setLeds(leds)
 
 
 def commit():
@@ -73,12 +81,12 @@ def setup():
 	device.assignKey(KeyCode.SW2_PRESS, command("git merge "))
 	device.assignKey(KeyCode.SW2_RELEASE, [])
 
-	device.assignKey(KeyCode.SW3_PRESS, command("git diff\n"))
+	device.assignKey(KeyCode.SW3_PRESS, [])  # commit
 	device.assignKey(KeyCode.SW3_RELEASE, [])
+	device.registerCallback(commit, KeyCode.SW3_PRESS)
 
-	device.assignKey(KeyCode.SW4_PRESS, [])  # commit
+	device.assignKey(KeyCode.SW4_PRESS, command("git status\n"))
 	device.assignKey(KeyCode.SW4_RELEASE, [])
-	device.registerCallback(commit, KeyCode.SW4_PRESS)
 
 	device.assignKey(KeyCode.SW5_PRESS, command("git push\n"))
 	device.assignKey(KeyCode.SW5_RELEASE, [])
@@ -90,7 +98,7 @@ def setup():
 	device.assignKey(KeyCode.SW7_RELEASE, [])
 	device.registerCallback(ebp, KeyCode.SW7_PRESS)
 
-	device.assignKey(KeyCode.SW8_PRESS, command("git status\n"))
+	device.assignKey(KeyCode.SW8_PRESS, command("git diff\n"))
 	device.assignKey(KeyCode.SW8_RELEASE, [])
 
 	device.assignKey(KeyCode.SW9_PRESS, command("git pull\n"))
